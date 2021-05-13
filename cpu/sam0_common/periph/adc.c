@@ -63,11 +63,11 @@ int adc_init(adc_t channel) {
     ADC_DEV->REFCTRL.bit.REFCOMP = 1;
 
     /* Set the accumulation and divide result */
-    ADC_DEV->AVGCTRL.bit.SAMPLENUM = 4;
+    ADC_DEV->AVGCTRL.bit.SAMPLENUM = 0;
     ADC_DEV->AVGCTRL.bit.ADJRES    = 0;//ADC_AVGCTRL_ADJRES(divideResult) | accumulate;
 
     /* Set Sample length */
-    ADC_DEV->SAMPCTRL.bit.SAMPLEN = 16;//ADC_SAMPCTRL_SAMPLEN(ADC_0_SAMPLE_LENGTH);
+    ADC_DEV->SAMPCTRL.bit.SAMPLEN = 0;//ADC_SAMPCTRL_SAMPLEN(ADC_0_SAMPLE_LENGTH);
     while(ADC_DEV->STATUS.reg & ADC_STATUS_SYNCBUSY);
 
     /* Configure CTRLB Register HERE IS THE RESOLUTION SET!*/
@@ -86,13 +86,15 @@ int adc_init(adc_t channel) {
     PM->APBBMASK.reg |= PM_APBBMASK_PORT;
 
     int pin = ADC_GET_PIN(channel);
-    PortGroup* pg = ADC_GET_PORT_GROUP(channel);
+    if( pin != ADC_DONT_INIT_PIN ) {
+        PortGroup* pg = ADC_GET_PORT_GROUP(channel);
 
-    pg->DIRCLR.reg = (1 << pin);
-    pg->PINCFG[pin].bit.INEN = 1;
-    pg->PINCFG[pin].bit.PMUXEN = 1;
-    pg->PMUX[pin >> 1].reg &= ~(0xf << (4 * (pin & 0x1)));
-    pg->PMUX[pin >> 1].reg |= (PORT_PMUX_PMUXE_B_Val << (4 * (pin & 0x1)));
+        pg->DIRCLR.reg = (1 << pin);
+        pg->PINCFG[pin].bit.INEN = 1;
+        pg->PINCFG[pin].bit.PMUXEN = 1;
+        pg->PMUX[pin >> 1].reg &= ~(0xf << (4 * (pin & 0x1)));
+        pg->PMUX[pin >> 1].reg |= (PORT_PMUX_PMUXE_B_Val << (4 * (pin & 0x1)));
+    }
 
     ADC_DEV->INPUTCTRL.bit.MUXNEG      = ADC_INPUTCTRL_MUXNEG_IOGND_Val;
     while(ADC_DEV->STATUS.reg & ADC_STATUS_SYNCBUSY);

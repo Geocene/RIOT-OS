@@ -48,6 +48,8 @@
 #include "periph_cpu.h"
 #include "periph_conf.h"
 
+#define ADC_DONT_INIT_PIN 0xFF
+
 #ifdef __cplusplus
 extern "C" {
 #endif
